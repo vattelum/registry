@@ -15,7 +15,7 @@ Part of the [Vattelum](https://github.com/vattelum) ecosystem.
 
 ## Demo
 
-https://github.com/user-attachments/assets/registry.mp4
+https://github.com/user-attachments/assets/2fdb1add-fbcf-48f7-9e87-c300557fb7d6
 
 ## How It Works
 
