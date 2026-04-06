@@ -147,10 +147,6 @@ If you deploy your own smart contract, you must update two files to correctly po
 | `VITE_CHAIN_ID` | Chain ID of your target network |
 | `VITE_RPC_URL` | RPC endpoint |
 
-## User-Suggested Use Cases
-
-**Dynamic Terms & Conditions** — A website owner can link her website's T&Cs directly to a Registry document. Letting clients adjust selected aspects of the terms and conditions—in this case the licensing of software—increases engagement and feelings of ownership. Since website terms bind visitors through use rather than individual contracts, any website can include dynamic terms for its products with no added legal complexity.
-
 ## License
 
 MIT
