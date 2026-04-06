@@ -543,6 +543,10 @@
 			submitError = 'Title is required.';
 			return;
 		}
+		if (title.length > 256) {
+			submitError = 'Title must be 256 characters or fewer.';
+			return;
+		}
 		if (categoryId < 0) {
 			submitError = 'Please select a category.';
 			return;

@@ -2,32 +2,36 @@ import { signMessage, sendTransaction, getConnectorClient } from '@wagmi/core';
 import { config } from '$lib/services/ethereum';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let turbo: any = null;
+let turboPromise: Promise<any> | null = null;
+
+async function initTurbo() {
+	const client = await getConnectorClient(config);
+	if (!client?.account) throw new Error('Wallet not connected');
+
+	const { TurboFactory } = await import('@ardrive/turbo-sdk/web');
+	return TurboFactory.authenticated({
+		walletAdapter: {
+			getSigner: () => ({
+				signMessage: (msg: string | Uint8Array) => {
+					if (typeof msg === 'string') {
+						return signMessage(config, { message: msg });
+					}
+					return signMessage(config, { message: { raw: msg } });
+				},
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				sendTransaction: (tx: any) => sendTransaction(config, tx),
+				provider: client.transport
+			})
+		},
+		token: 'ethereum'
+	});
+}
 
 async function getTurbo() {
-	if (!turbo) {
-		const client = await getConnectorClient(config);
-		if (!client?.account) throw new Error('Wallet not connected');
-
-		const { TurboFactory } = await import('@ardrive/turbo-sdk/web');
-		turbo = TurboFactory.authenticated({
-			walletAdapter: {
-				getSigner: () => ({
-					signMessage: (msg: string | Uint8Array) => {
-						if (typeof msg === 'string') {
-							return signMessage(config, { message: msg });
-						}
-						return signMessage(config, { message: { raw: msg } });
-					},
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					sendTransaction: (tx: any) => sendTransaction(config, tx),
-					provider: client.transport
-				})
-			},
-			token: 'ethereum'
-		});
+	if (!turboPromise) {
+		turboPromise = initTurbo();
 	}
-	return turbo;
+	return turboPromise;
 }
 
 export interface UploadCost {
@@ -49,21 +53,21 @@ export async function getBalance(): Promise<string> {
 
 export async function uploadDocument(content: string): Promise<string> {
 	const client = await getTurbo();
+	const encoded = new TextEncoder().encode(content);
 	const result = await client.upload({
-		data: content,
+		data: encoded,
 		dataItemOpts: {
 			tags: [
-				{ name: 'Content-Type', value: 'text/markdown' },
-				{ name: 'App-Name', value: 'Solon' }
+				{ name: 'Content-Type', value: 'text/markdown; charset=utf-8' },
+				{ name: 'App-Name', value: 'Vattelum Registry' }
 			]
 		}
 	});
 	return result.id;
 }
 
-// Reset cached turbo client (call on wallet disconnect/switch)
 export function resetTurbo() {
-	turbo = null;
+	turboPromise = null;
 }
 
 const GATEWAYS = ['https://arweave.net', 'https://ar-io.dev'];
@@ -73,8 +77,15 @@ export function arweaveUrl(txId: string): string {
 }
 
 const CACHE_PREFIX = 'registry:arweave:';
+const CACHE_TS_PREFIX = 'registry:arweave-ts:';
+
+const ARWEAVE_TX_REGEX = /^[A-Za-z0-9_-]{43}$/;
 
 export async function fetchFromArweave(txId: string, contentHash?: string): Promise<string> {
+	if (!ARWEAVE_TX_REGEX.test(txId)) {
+		throw new Error('Invalid Arweave transaction ID format.');
+	}
+
 	// Check localStorage cache by content hash (immutable — never stale)
 	if (contentHash) {
 		try {
@@ -94,11 +105,13 @@ export async function fetchFromArweave(txId: string, contentHash?: string): Prom
 				if (contentHash) {
 					try {
 						localStorage.setItem(CACHE_PREFIX + contentHash, text);
+						localStorage.setItem(CACHE_TS_PREFIX + contentHash, String(Date.now()));
 					} catch {
 						// storage full — evict oldest entries
 						evictOldestCache();
 						try {
 							localStorage.setItem(CACHE_PREFIX + contentHash, text);
+							localStorage.setItem(CACHE_TS_PREFIX + contentHash, String(Date.now()));
 						} catch {
 							// still full, skip caching
 						}
@@ -114,13 +127,20 @@ export async function fetchFromArweave(txId: string, contentHash?: string): Prom
 }
 
 function evictOldestCache() {
-	const keys: string[] = [];
+	const entries: { key: string; timestamp: number }[] = [];
 	for (let i = 0; i < localStorage.length; i++) {
 		const key = localStorage.key(i);
-		if (key?.startsWith(CACHE_PREFIX)) keys.push(key);
+		if (key?.startsWith(CACHE_PREFIX)) {
+			const hash = key.slice(CACHE_PREFIX.length);
+			const ts = Number(localStorage.getItem(CACHE_TS_PREFIX + hash)) || 0;
+			entries.push({ key, timestamp: ts });
+		}
 	}
-	// Remove first 5 entries to free space
-	for (const key of keys.slice(0, 5)) {
-		localStorage.removeItem(key);
+	// Sort oldest first, remove 5
+	entries.sort((a, b) => a.timestamp - b.timestamp);
+	for (const entry of entries.slice(0, 5)) {
+		const hash = entry.key.slice(CACHE_PREFIX.length);
+		localStorage.removeItem(entry.key);
+		localStorage.removeItem(CACHE_TS_PREFIX + hash);
 	}
 }
