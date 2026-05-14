@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+.env.local
+
+# SvelteKit
+.svelte-kit/
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Foundry
+cache/
+out/
+broadcast/
+apps/contracts/lib/
+
+# Build
+dist/
+build/
+
+# Internal
+docs/
+specs/
+.specify/

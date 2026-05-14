@@ -1,0 +1,3 @@
+[submodule "apps/contracts/lib/document-registry"]
+	path = apps/contracts/lib/document-registry
+	url = https://github.com/vattelum/document-registry
