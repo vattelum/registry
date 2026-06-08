@@ -17,7 +17,7 @@ Part of the [Vattelum](https://github.com/vattelum) ecosystem.
 
 ## Demo
 
-https://github.com/user-attachments/assets/2fdb1add-fbcf-48f7-9e87-c300557fb7d6
+https://github.com/user-attachments/assets/d4bfd9dc-1f54-4c7f-91f1-747b2ff9a4df
 
 ## How It Works
 
