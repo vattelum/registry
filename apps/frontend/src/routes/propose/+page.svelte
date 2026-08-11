@@ -24,7 +24,7 @@
 	import ContentUriLink from '$lib/components/ContentUriLink.svelte';
 	import ExplorerLink from '$lib/components/ExplorerLink.svelte';
 	import { showToast } from '$lib/stores/toasts';
-	import { hashBody } from '@vattelum/document-registry-js';
+	import { hashBody, canonicalizeBody } from '@vattelum/document-registry-js';
 	import { hashToBytes32 } from '$lib/services/hash';
 	import {
 		DOC_TYPES,
@@ -755,8 +755,11 @@
 		try {
 			// 1. Assemble body and compute hash
 			submitStep = 'Computing content hash...';
-			const body = isRepealMode() ? buildRepealBody() : sectionsToMarkdown(sections);
-			const contentHash = await hashBody(body);
+			// Canonicalize once, upstream of both the hash and the frontmatter-wrap
+			// that feeds uploadDocument, so producer bytes and the recorded hash agree
+			// byte-for-byte with any third-party verifier (S-4).
+			const body = canonicalizeBody(isRepealMode() ? buildRepealBody() : sectionsToMarkdown(sections));
+			const contentHash = hashBody(body);
 
 			// 2. Build full document with frontmatter
 			const cat = categories.find((c) => c.id === categoryId);

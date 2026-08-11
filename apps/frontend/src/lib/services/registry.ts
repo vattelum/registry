@@ -175,7 +175,7 @@ export interface LegislationPackageInfo {
 }
 
 /**
- * On-chain document shape per Referencing Standard v6 §3.3. Shared by every
+ * On-chain document shape per Referencing Standard v10 §3.3. Shared by every
  * registry that implements the v6 interface (Registry, BVSRegistry,
  * DAARegistry). Exported for cross-registry readers and consumers.
  */
@@ -190,7 +190,7 @@ export interface RegistryDocument {
 }
 
 /**
- * On-chain reference shape per Referencing Standard v6 §3.1. Identical to the
+ * On-chain reference shape per Referencing Standard v10 §3.1. Identical to the
  * `DocumentReference` exported from `contract-registry.ts` (both match the
  * aligned Solidity struct); kept here for local readability.
  */
