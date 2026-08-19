@@ -3,6 +3,7 @@ pragma solidity ^0.8.31;
 
 import {
     IDocumentRegistry,
+    IDocumentRegistryEnumerable,
     Document,
     DocumentReference,
     DOC_TYPE_ORIGINAL,
@@ -28,7 +29,7 @@ import {
 ///         for the lock duration. After the window expires, the admin regains free
 ///         access to modify, re-lock, or amend. This is /registry-specific because
 ///         /registry has no voting layer to substitute for the constraint.
-contract Registry is IDocumentRegistry {
+contract Registry is IDocumentRegistry, IDocumentRegistryEnumerable {
     // ──────────────────────── Structs ──────────────────────────
 
     struct DocumentInput {
@@ -61,14 +62,6 @@ contract Registry is IDocumentRegistry {
     // ──────────────────────── Events ──────────────────────────
 
     event CategoryAdded(uint256 indexed categoryId, string name);
-    event DocumentAdded(
-        uint256 indexed categoryId,
-        uint256 indexed documentId,
-        uint256 indexed version,
-        string contentUri,
-        bytes32 contentHash,
-        uint8 docType
-    );
     event AdminTransferred(address indexed previous, address indexed current);
     event AmendmentRestrictionsUpdated(uint256 indexed categoryId, uint256 indexed documentId);
 
@@ -81,6 +74,7 @@ contract Registry is IDocumentRegistry {
     error VersionDoesNotExist(uint256 categoryId, uint256 documentId, uint256 version);
     error AmendmentTooSoon(uint256 categoryId, uint256 documentId, uint256 earliestAllowed);
     error SectionLocked(uint256 categoryId, uint256 documentId, uint256 lockedSection);
+    error IndexOutOfRange(uint256 index, uint256 count);
     error RestrictionsLocked(uint256 categoryId, uint256 documentId, uint256 earliestAllowed);
 
     // ──────────────────────── Modifier ────────────────────────
@@ -255,9 +249,33 @@ contract Registry is IDocumentRegistry {
     }
 
     /// @notice Retrieve the document count for a category.
-    function getDocumentCount(uint256 categoryId) external view returns (uint256) {
+    function getDocumentCount(uint256 categoryId) external view override returns (uint256) {
         _requireCategory(categoryId);
         return _documentCounts[categoryId];
+    }
+
+    /// @notice Number of categories, for position-based enumeration.
+    function getCategoryCount() external view override returns (uint256) {
+        return categoryCount;
+    }
+
+    /// @notice Category id at a 0-based position. Categories are numbered from 0, so position and
+    ///         id coincide here; consumers read through this accessor rather than assuming that.
+    function getCategoryIdAt(uint256 index) external view override returns (uint256) {
+        if (index >= categoryCount) {
+            revert IndexOutOfRange(index, categoryCount);
+        }
+        return index;
+    }
+
+    /// @notice Document id at a 0-based position within a category. Documents are numbered from 1.
+    function getDocumentIdAt(uint256 categoryId, uint256 index) external view override returns (uint256) {
+        _requireCategory(categoryId);
+        uint256 count = _documentCounts[categoryId];
+        if (index >= count) {
+            revert IndexOutOfRange(index, count);
+        }
+        return index + 1;
     }
 
     /// @notice Retrieve amendment restrictions for a document.

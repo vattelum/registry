@@ -11,6 +11,7 @@
 	import { docTypeLabel, relationLabel, RELATION_AMENDS, RELATION_REVISES, RELATION_REPEALS, RELATION_CODIFIES } from '$lib/constants/docTypes';
 	import { formatDate, formatCountdown, stripFrontmatter } from '$lib/services/format';
 	import CiteButton from '$lib/components/CiteButton.svelte';
+	import ExportCitationButton from '$lib/components/ExportCitationButton.svelte';
 
 	interface Reference {
 		registryAddress: string;
@@ -631,6 +632,20 @@
 																						timestamp={ver.timestamp}
 																						registryAddress={registryAddress}
 																						chainId={chainId}
+																						categoryId={cat.id}
+																						documentId={doc.documentId}
+																						categoryName={cat.name}
+																					/>
+																					<ExportCitationButton
+																						title={ver.title}
+																						version={ver.version}
+																						contentHash={ver.contentHash}
+																						contentUri={ver.contentUri}
+																						timestamp={ver.timestamp}
+																						registryAddress={registryAddress}
+																						chainId={chainId}
+																						categoryId={cat.id}
+																						documentId={doc.documentId}
 																						categoryName={cat.name}
 																					/>
 																					<button

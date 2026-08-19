@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Registry} from "../src/Registry.sol";
 import {
     IDocumentRegistry,
+    IDocumentRegistryEnumerable,
     Document,
     DocumentReference,
     DOC_TYPE_ORIGINAL,
@@ -779,6 +780,71 @@ contract RegistryTest is Test {
 
         DocumentReference[] memory refs = iface.getReferences(0, d1, 1);
         assertEq(refs.length, 0);
+    }
+
+    // ──────────────── Enumeration ───────────────────────────
+
+    function test_enumeration_walksCategoriesAndDocuments() public {
+        _createCategory("Universal Standards");
+        _createCategory("Chain Standards");
+        _newDoc(0, "ar://a", HASH_A, "Standard A", DOC_TYPE_ORIGINAL);
+        _newDoc(0, "ar://b", HASH_B, "Standard B", DOC_TYPE_ORIGINAL);
+        _newDoc(1, "ar://c", HASH_A, "Standard C", DOC_TYPE_ORIGINAL);
+
+        assertEq(registry.getCategoryCount(), 2);
+        assertEq(registry.getCategoryIdAt(0), 0);
+        assertEq(registry.getCategoryIdAt(1), 1);
+
+        assertEq(registry.getDocumentCount(0), 2);
+        assertEq(registry.getDocumentIdAt(0, 0), 1);
+        assertEq(registry.getDocumentIdAt(0, 1), 2);
+
+        assertEq(registry.getDocumentCount(1), 1);
+        assertEq(registry.getDocumentIdAt(1, 0), 1);
+    }
+
+    function test_enumeration_idsResolveThroughReadTrio() public {
+        _createCategory("Universal Standards");
+        _newDoc(0, "ar://a", HASH_A, "Standard A", DOC_TYPE_ORIGINAL);
+
+        IDocumentRegistryEnumerable iface = IDocumentRegistryEnumerable(address(registry));
+        uint256 categoryId = iface.getCategoryIdAt(0);
+        uint256 documentId = iface.getDocumentIdAt(categoryId, 0);
+        Document[] memory history = registry.getHistory(categoryId, documentId);
+
+        assertEq(history.length, 1);
+        assertEq(history[0].title, "Standard A");
+    }
+
+    function test_getCategoryCount_matchesCategoryCount() public {
+        assertEq(registry.getCategoryCount(), registry.categoryCount());
+        _createCategory("Universal Standards");
+        assertEq(registry.getCategoryCount(), registry.categoryCount());
+    }
+
+    function test_getCategoryIdAt_revertsPastEnd() public {
+        _createCategory("Universal Standards");
+
+        vm.expectRevert(abi.encodeWithSelector(Registry.IndexOutOfRange.selector, 1, 1));
+        registry.getCategoryIdAt(1);
+    }
+
+    function test_getCategoryIdAt_revertsOnEmptyRegistry() public {
+        vm.expectRevert(abi.encodeWithSelector(Registry.IndexOutOfRange.selector, 0, 0));
+        registry.getCategoryIdAt(0);
+    }
+
+    function test_getDocumentIdAt_revertsPastEnd() public {
+        _createCategory("Universal Standards");
+        _newDoc(0, "ar://a", HASH_A, "Standard A", DOC_TYPE_ORIGINAL);
+
+        vm.expectRevert(abi.encodeWithSelector(Registry.IndexOutOfRange.selector, 1, 1));
+        registry.getDocumentIdAt(0, 1);
+    }
+
+    function test_getDocumentIdAt_revertsOnUnknownCategory() public {
+        vm.expectRevert(abi.encodeWithSelector(Registry.CategoryDoesNotExist.selector, 0));
+        registry.getDocumentIdAt(0, 0);
     }
 
     // ──────────────── Fuzz ──────────────────────────────────
