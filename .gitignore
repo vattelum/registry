@@ -18,7 +18,6 @@ vite.config.ts.timestamp-*
 cache/
 out/
 broadcast/
-apps/contracts/lib/
 
 # Build
 dist/
