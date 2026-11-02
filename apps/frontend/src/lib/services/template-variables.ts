@@ -1,7 +1,7 @@
 /**
  * Parses `variables:` declarations from a document's YAML frontmatter.
  *
- * Consumed by `loadDocumentBody` in `$lib/services/registry`, which surfaces
+ * Consumed by `loadDocumentBody` in `#lib/services/registry.ts`, which surfaces
  * the parsed list to `SectionTargetPicker` so a contributor amending a
  * template can see which variable slots the target document expects.
  */

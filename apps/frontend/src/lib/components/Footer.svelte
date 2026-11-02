@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatNetwork, explorerAddressUrl } from '$lib/constants/networks';
+	import { formatNetwork, explorerAddressUrl } from '#lib/constants/networks.ts';
 
 	const chainId = Number(import.meta.env.VITE_CHAIN_ID);
 

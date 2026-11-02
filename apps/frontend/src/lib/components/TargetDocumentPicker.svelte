@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { docTypeLabel, allowsMultipleReferences, requiresReferences } from '$lib/constants/docTypes';
-	import { formatCountdown } from '$lib/services/format';
-	import type { DocumentInfo } from '$lib/services/registry';
+	import { docTypeLabel, allowsMultipleReferences, requiresReferences } from '#lib/constants/docTypes.ts';
+	import { formatCountdown } from '#lib/services/format.ts';
+	import type { DocumentInfo } from '#lib/services/registry.ts';
 
 	interface VersionInfo {
 		version: number;
