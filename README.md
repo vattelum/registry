@@ -82,7 +82,7 @@ You are free to select the number of categories of legislation and their names i
 
 #### Prerequisites
 
-- [Node.js](https://nodejs.org) 20.19+ or 22.12+ (required by Vite 7)
+- [Node.js](https://nodejs.org) 22.17+ (required by SvelteKit 3)
 - [Foundry](https://getfoundry.sh) (for contract compilation, testing, and deployment)
 - An Ethereum wallet (MetaMask, Ledger, etc.)
 
