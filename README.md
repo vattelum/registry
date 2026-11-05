@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.31-363636.svg)](https://soliditylang.org)
-[![Foundry Tests](https://img.shields.io/badge/Foundry_Tests-44_passing-brightgreen.svg)](https://getfoundry.sh)
+[![Foundry Tests](https://img.shields.io/badge/Foundry_Tests-51_passing-brightgreen.svg)](https://getfoundry.sh)
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-Frontend-FF3E00.svg)](https://kit.svelte.dev)
 
 The Registry offers anyone the opportunity to create and store law on the blockchain.
@@ -51,11 +51,11 @@ Any person can independently verify that a document is authentic and unmodified 
 
 **Smart Contract** (Solidity 0.8.31, OpenZeppelin 5.x):
 - `Registry.sol` — Append-only document registry with categories, document layer, versioning, transferable admin control, and on-chain hard-lock amendment restrictions
-- Conforms to `IDocumentRegistry` from [`@vattelum/document-registry`](https://github.com/vattelum/document-registry) (Solidity standard, vendored as submodule) — interoperable with other Vattelum registries. Frontend uses the [`@vattelum/document-registry-js`](https://www.npmjs.com/package/@vattelum/document-registry-js) companion package for type definitions and `hashBody`.
+- Conforms to `IDocumentRegistry` from [`@vattelum/document-registry`](https://github.com/vattelum/document-registry) (Solidity standard, vendored as submodule) — interoperable with other Vattelum registries. Frontend uses the [`@vattelum/document-registry-js`](https://www.npmjs.com/package/@vattelum/document-registry-js) companion package for type definitions and `hashBody`. The package also defines how a law's text in force at a given moment is resolved from its amendments, repeals and revisions.
 
 **Frontend** (SvelteKit, Tailwind CSS):
-- `/` — Public registry browser. Loads categories and documents from the contract, fetches full text from Arweave on demand.
-- `/propose` — Structured markdown editor with section numbering (§1, §1.1, §1.1.A), three editing modes (normal, amendment, repeal), Arweave upload, and on-chain registration. Admin-gated.
+- `/` — Public registry browser. Loads categories and documents from the contract, fetches full text from Arweave on demand. For each law, shows the text in force on any chosen date, with cite, export and copy.
+- `/propose` — Structured markdown editor with section numbering (§1, §1.1, §1.1.A), three editing modes (normal, amendment, repeal), Arweave upload, and on-chain registration. Admin-gated. Refuses headings outside the section format; an amendment adds new sections to its targets and asks before removing a targeted section it gives no text for.
 
 **External Services**:
 - [Arweave](https://arweave.org) — Permanent document storage via [ArDrive Turbo](https://ardrive.io)

@@ -258,7 +258,11 @@ export async function loadLegislationPackages(
 		let wholelyRepealed = false;
 
 		if (history.length > 1) {
-			status = 'PartiallyAmended';
+			// Amended only by amendments or repeals after the last version that set the
+			// whole text (Original, Revision, Codification); a revised law is in force.
+			const isChange = (t: number) => t === DOCTYPE_AMENDMENT || t === DOCTYPE_REPEAL;
+			const lastWhole = history.findLastIndex((v) => !isChange(v.docType));
+			if (history.slice(lastWhole + 1).some((v) => isChange(v.docType))) status = 'PartiallyAmended';
 			for (let j = 1; j < history.length; j++) {
 				const v = history[j];
 				if (v.docType !== DOCTYPE_REPEAL) continue;

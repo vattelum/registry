@@ -8,10 +8,11 @@
 	import { renderSectionedMarkdown } from '#lib/services/markdown.ts';
 	import { loadCategories as fetchCategories, loadDocuments, loadAmendmentRestrictions } from '#lib/services/registry.ts';
 	import Tooltip from '#lib/components/Tooltip.svelte';
-	import { docTypeLabel, relationLabel, RELATION_AMENDS, RELATION_REVISES, RELATION_REPEALS, RELATION_CODIFIES } from '#lib/constants/docTypes.ts';
+	import { docTypeLabel, relationLabel, RELATION_AMENDS, RELATION_REVISES, RELATION_REPEALS, RELATION_CODIFIES, RELATION_GOVERNS } from '#lib/constants/docTypes.ts';
 	import { formatDate, formatCountdown, stripFrontmatter } from '#lib/services/format.ts';
 	import CiteButton from '#lib/components/CiteButton.svelte';
 	import ExportCitationButton from '#lib/components/ExportCitationButton.svelte';
+	import LegislationExpand from '#lib/components/LegislationExpand.svelte';
 
 	interface Reference {
 		registryAddress: string;
@@ -470,7 +471,7 @@
 </script>
 
 <div>
-	<h1 class="text-2xl font-semibold mb-6">Decentralized Autonomous Association — Registry <Tooltip text={"The DAA stores an organization's legal documents as permanent, immutable files on Arweave decentralized data storage.\n\nBoth the document's content hash (SHA-256) and Arweave transaction ID are then recorded in a Solidity smart contract on Ethereum, creating a tamper-proof registry.\n\nThe on-chain record includes structured metadata (title, category, version, vote reference), making the entire registry machine-readable and verifiable by any application or contract."} align="left"><span class="text-sm font-normal text-text-muted cursor-help">(?)</span></Tooltip></h1>
+	<h1 class="text-2xl font-semibold mb-6">Vattelum — Registry <Tooltip text={"The Registry stores legal documents as permanent, immutable files on Arweave decentralized data storage.\n\nBoth the document's content hash (SHA-256) and Arweave transaction ID are then recorded in a Solidity smart contract on Ethereum, creating a tamper-proof registry.\n\nThe on-chain record includes structured metadata (title, category, version, references), making the entire registry machine-readable and verifiable by any application or contract."} align="left"><span class="text-sm font-normal text-text-muted cursor-help">(?)</span></Tooltip></h1>
 
 	{#if loading}
 		<p class="text-text-secondary">Loading categories...</p>
@@ -556,7 +557,8 @@
 														{#if doc.versions.length > 0}
 															{@const vCount = doc.versions.filter(v => v.docType === 0 || v.docType === 2).length}
 															{@const aCount = doc.versions.filter(v => v.docType === 1).length}
-															v{vCount}{#if aCount > 0}, {aCount} {aCount === 1 ? 'amendment' : 'amendments'}{/if}
+															{@const rCount = doc.versions.filter(v => v.docType === 3).length}
+															v{vCount}{#if aCount > 0}, {aCount} {aCount === 1 ? 'amendment' : 'amendments'}{/if}{#if rCount > 0}, {rCount} {rCount === 1 ? 'repeal' : 'repeals'}{/if}
 														{:else}
 															{doc.versionCount} {doc.versionCount === 1 ? 'entry' : 'entries'}
 														{/if}
@@ -590,7 +592,7 @@
 																				<span class="text-sm {isSuperseded(ver) ? 'line-through text-text-muted' : ''}">{ver.title}</span>
 																			{/if}
 																			{#if ver.docType !== 0}
-																				<span class="text-xs px-1.5 py-0.5 rounded bg-bg-lighter text-text-muted">{isPartialRepeal(ver) ? 'Partial Repeal' : docTypeLabel(ver.docType)}</span>
+																				<span class="text-xs px-1.5 py-0.5 rounded bg-bg-lighter text-text-muted">{isPartialRepeal(ver) ? `Repealed §${ver.references.find((r) => r.relationType === RELATION_REPEALS)?.targetSection.split(',').join(', §')}` : docTypeLabel(ver.docType)}</span>
 																			{/if}
 																			{#each ver.incomingRefs as iref}
 																				<span class="text-xs px-1.5 py-0.5 rounded bg-bg-lighter text-text-secondary">{incomingRefLabel(iref, displayLabels)}</span>
@@ -665,6 +667,24 @@
 																{/if}
 															</div>
 														{/each}
+														{#if doc.versions.length > 0}
+															<div class="mt-2">
+																<LegislationExpand
+																	reference={{
+																		registryAddress: registryAddress,
+																		chainId: BigInt(chainId),
+																		categoryId: BigInt(cat.id),
+																		documentId: BigInt(doc.documentId),
+																		version: BigInt(doc.versions[doc.versions.length - 1].version),
+																		relationType: RELATION_GOVERNS,
+																		targetSection: ''
+																	}}
+																	asOf={BigInt(Math.floor(Date.now() / 1000))}
+																	pickDate
+																	categoryName={cat.name}
+																/>
+															</div>
+														{/if}
 													{/if}
 												</div>
 											{/if}
